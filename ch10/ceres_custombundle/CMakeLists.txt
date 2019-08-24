@@ -13,7 +13,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -O3")
 include_directories(${CERES_INCLUDE_DIRS} 
                     ${PROJECT_SOURCE_DIR}/common
                     ${PROJECT_SOURCE_DIR}/common/tools 
-                    ${PROJECT_SOURCE_DIR}/common/flags)
+                    ${PROJECT_SOURCE_DIR}/common/flags
+                    "/usr/include/eigen3/")
 
 add_library(BALProblem SHARED ${PROJECT_SOURCE_DIR}/common/BALProblem.cpp)
 add_library(ParseCmd SHARED ${PROJECT_SOURCE_DIR}/common/flags/command_args.cpp)

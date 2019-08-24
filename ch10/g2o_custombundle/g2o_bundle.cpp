@@ -37,6 +37,7 @@ using namespace std;
 typedef Eigen::Map<Eigen::VectorXd> VectorRef;
 typedef Eigen::Map<const Eigen::VectorXd> ConstVectorRef;
 typedef g2o::BlockSolver<g2o::BlockSolverTraits<9,3> > BalBlockSolver;
+typedef g2o::LinearSolverDense<BalBlockSolver::PoseMatrixType> BalDenseSolver;
 
 // set up the vertexs and edges for the bundle adjustment. 
 void BuildProblem(const BALProblem* bal_problem, g2o::SparseOptimizer* optimizer, const BundleParams& params)
@@ -128,15 +129,15 @@ void WriteToBALProblem(BALProblem* bal_problem, g2o::SparseOptimizer* optimizer)
 }
 
 //this function is  unused yet..
-void SetMinimizerOptions(std::shared_ptr<BalBlockSolver>& solver_ptr, const BundleParams& params, g2o::SparseOptimizer* optimizer)
+void SetMinimizerOptions(std::unique_ptr<BalBlockSolver> solver_ptr, const BundleParams& params, g2o::SparseOptimizer* optimizer)
 {
     //std::cout<<"Set Minimizer  .."<< std::endl;
     g2o::OptimizationAlgorithmWithHessian* solver;
     if(params.trust_region_strategy == "levenberg_marquardt"){
-        solver = new g2o::OptimizationAlgorithmLevenberg(solver_ptr.get());
+        solver = new g2o::OptimizationAlgorithmLevenberg(std::move(solver_ptr));
     }
     else if(params.trust_region_strategy == "dogleg"){
-        solver = new g2o::OptimizationAlgorithmDogleg(solver_ptr.get());
+        solver = new g2o::OptimizationAlgorithmDogleg(std::move(solver_ptr));
     }
     else 
     {
@@ -149,50 +150,50 @@ void SetMinimizerOptions(std::shared_ptr<BalBlockSolver>& solver_ptr, const Bund
 }
 
 //this function is  unused yet..
-void SetLinearSolver(std::shared_ptr<BalBlockSolver>& solver_ptr, const BundleParams& params)
+void SetLinearSolver(std::unique_ptr<BalBlockSolver> &solver_ptr, const BundleParams& params)
 {
-    //std::cout<<"Set Linear Solver .."<< std::endl;
-    g2o::LinearSolver<BalBlockSolver::PoseMatrixType>* linearSolver = 0;
     
+    std::unique_ptr<g2o::LinearSolver<BalBlockSolver::PoseMatrixType>> linearSolver;
+
     if(params.linear_solver == "dense_schur" ){
-        linearSolver = new g2o::LinearSolverDense<BalBlockSolver::PoseMatrixType>();
+        linearSolver = g2o::make_unique<BalDenseSolver>();
     }
     else if(params.linear_solver == "sparse_schur"){
-        linearSolver = new g2o::LinearSolverCholmod<BalBlockSolver::PoseMatrixType>();
-        dynamic_cast<g2o::LinearSolverCholmod<BalBlockSolver::PoseMatrixType>* >(linearSolver)->setBlockOrdering(true);  // AMD ordering , only needed for sparse cholesky solver
+        auto cholesky = g2o::make_unique<g2o::LinearSolverCholmod<BalBlockSolver::PoseMatrixType>>();
+        cholesky->setBlockOrdering(true);
+        linearSolver = std::move(cholesky);
+        
+         // AMD ordering , only needed for sparse cholesky solver
     }
-    
 
-    solver_ptr = std::make_shared<BalBlockSolver>(linearSolver);
+    solver_ptr = g2o::make_unique<BalBlockSolver>(std::move(linearSolver));
     std::cout <<  "Set Complete.."<< std::endl;
 }
 
 void SetSolverOptionsFromFlags(BALProblem* bal_problem, const BundleParams& params, g2o::SparseOptimizer* optimizer)
 {   
-    BalBlockSolver* solver_ptr;
-    
-    
-    g2o::LinearSolver<BalBlockSolver::PoseMatrixType>* linearSolver = 0;
-    
+    std::unique_ptr<BalBlockSolver> solver_ptr;    
+    std::unique_ptr<BalBlockSolver::LinearSolverType> linearSolver;
     if(params.linear_solver == "dense_schur" ){
-        linearSolver = new g2o::LinearSolverDense<BalBlockSolver::PoseMatrixType>();
+         linearSolver = g2o::make_unique<BalDenseSolver>();
     }
     else if(params.linear_solver == "sparse_schur"){
-        linearSolver = new g2o::LinearSolverCholmod<BalBlockSolver::PoseMatrixType>();
-        dynamic_cast<g2o::LinearSolverCholmod<BalBlockSolver::PoseMatrixType>* >(linearSolver)->setBlockOrdering(true);  // AMD ordering , only needed for sparse cholesky solver
+        auto cholesky = g2o::make_unique<g2o::LinearSolverCholmod<BalBlockSolver::PoseMatrixType>>();
+        cholesky->setBlockOrdering(true);
+        linearSolver = std::move(cholesky);  
+
+        // AMD ordering , only needed for sparse cholesky solver
     }
     
-
-    solver_ptr = new BalBlockSolver(linearSolver);
+    solver_ptr = g2o::make_unique<BalBlockSolver>(std::move(linearSolver));
     //SetLinearSolver(solver_ptr, params);
-
     //SetMinimizerOptions(solver_ptr, params, optimizer);
     g2o::OptimizationAlgorithmWithHessian* solver;
     if(params.trust_region_strategy == "levenberg_marquardt"){
-        solver = new g2o::OptimizationAlgorithmLevenberg(solver_ptr);
+        solver= new g2o::OptimizationAlgorithmLevenberg(std::move(solver_ptr));
     }
     else if(params.trust_region_strategy == "dogleg"){
-        solver = new g2o::OptimizationAlgorithmDogleg(solver_ptr);
+        solver = new g2o::OptimizationAlgorithmDogleg(std::move(solver_ptr));
     }
     else 
     {
@@ -219,32 +220,26 @@ void SolveProblem(const char* filename, const BundleParams& params)
         bal_problem.WriteToPLYFile(params.initial_ply);
     }
 
-    std::cout << "beginning problem..." << std::endl;
-    
+    std::cout << "beginning problem..." << std::endl;    
     // add some noise for the intial value
     srand(params.random_seed);
     bal_problem.Normalize();
     bal_problem.Perturb(params.rotation_sigma, params.translation_sigma,
                         params.point_sigma);
-
     std::cout << "Normalization complete..." << std::endl;
-
 
     g2o::SparseOptimizer optimizer;
     SetSolverOptionsFromFlags(&bal_problem, params, &optimizer);
     BuildProblem(&bal_problem, &optimizer, params);
-
-    
+        
     std::cout << "begin optimizaiton .."<< std::endl;
     // perform the optimizaiton 
     optimizer.initializeOptimization();
     optimizer.setVerbose(true);
     optimizer.optimize(params.num_iterations);
-
     std::cout << "optimization complete.. "<< std::endl;
     // write the optimized data into BALProblem class
     WriteToBALProblem(&bal_problem, &optimizer);
-
     // write the result into a .ply file.
     if(!params.final_ply.empty()){
         bal_problem.WriteToPLYFile(params.final_ply);
@@ -253,16 +248,12 @@ void SolveProblem(const char* filename, const BundleParams& params)
 }
 
 int main(int argc, char** argv)
-{
-    
+{    
     BundleParams params(argc,argv);  // set the parameters here.
-
     if(params.input.empty()){
         std::cout << "Usage: bundle_adjuster -input <path for dataset>";
         return 1;
     }
-
-    SolveProblem(params.input.c_str(), params);
-  
+    SolveProblem(params.input.c_str(), params);  
     return 0;
 }

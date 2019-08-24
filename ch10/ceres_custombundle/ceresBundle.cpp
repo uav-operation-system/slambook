@@ -6,7 +6,7 @@
 #include "common/BALProblem.h"
 #include "common/BundleParams.h"
 
-
+using namespace std;
 using namespace ceres;
 
 void SetLinearSolver(ceres::Solver::Options* options, const BundleParams& params)
@@ -14,7 +14,7 @@ void SetLinearSolver(ceres::Solver::Options* options, const BundleParams& params
     CHECK(ceres::StringToLinearSolverType(params.linear_solver, &options->linear_solver_type));
     CHECK(ceres::StringToSparseLinearAlgebraLibraryType(params.sparse_linear_algebra_library, &options->sparse_linear_algebra_library_type));
     CHECK(ceres::StringToDenseLinearAlgebraLibraryType(params.dense_linear_algebra_library, &options->dense_linear_algebra_library_type));
-    options->num_linear_solver_threads = params.num_threads;
+//    options->num_linear_solver_threads = params.num_threads;
 
 }
 
@@ -106,17 +106,17 @@ void SolveProblem(const char* filename, const BundleParams& params)
     BALProblem bal_problem(filename);
 
     // show some information here ...
-    std::cout << "bal problem file loaded..." << std::endl;
-    std::cout << "bal problem have " << bal_problem.num_cameras() << " cameras and "
-              << bal_problem.num_points() << " points. " << std::endl;
-    std::cout << "Forming " << bal_problem.num_observations() << " observatoins. " << std::endl;
+    cout << "bal problem file loaded..." << endl;
+    cout << "bal problem have " << bal_problem.num_cameras() << " cameras and "
+              << bal_problem.num_points() << " points. " << endl;
+    cout << "Forming " << bal_problem.num_observations() << " observatoins. " << endl;
 
     // store the initial 3D cloud points and camera pose..
     if(!params.initial_ply.empty()){
         bal_problem.WriteToPLYFile(params.initial_ply);
     }
 
-    std::cout << "beginning problem..." << std::endl;
+    cout << "beginning problem..." << endl;
     
     // add some noise for the intial value
     srand(params.random_seed);
@@ -124,12 +124,12 @@ void SolveProblem(const char* filename, const BundleParams& params)
     bal_problem.Perturb(params.rotation_sigma, params.translation_sigma,
                         params.point_sigma);
 
-    std::cout << "Normalization complete..." << std::endl;
+    cout << "Normalization complete..." << endl;
     
     Problem problem;
     BuildProblem(&bal_problem, &problem, params);
 
-    std::cout << "the problem is successfully build.." << std::endl;
+    cout << "the problem is successfully build.." << endl;
    
    
     Solver::Options options;
@@ -138,7 +138,7 @@ void SolveProblem(const char* filename, const BundleParams& params)
     options.function_tolerance = 1e-16;
     Solver::Summary summary;
     Solve(options, &problem, &summary);
-    std::cout << summary.FullReport() << "\n";
+    cout << summary.FullReport() << "\n";
 
     // write the result into a .ply file.   
     if(!params.final_ply.empty()){
@@ -151,7 +151,7 @@ int main(int argc, char** argv)
     BundleParams params(argc,argv);  // set the parameters here.
    
     google::InitGoogleLogging(argv[0]);
-    std::cout << params.input << std::endl;
+    cout << params.input << endl;
     if(params.input.empty()){
         std::cout << "Usage: bundle_adjuster -input <path for dataset>";
         return 1;

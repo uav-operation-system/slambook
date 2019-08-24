@@ -27,8 +27,8 @@ public:
         _estimate += Eigen::Vector3d(update);
     }
     // 存盘和读盘：留空
-    virtual bool read( istream& in ) {}
-    virtual bool write( ostream& out ) const {}
+    virtual bool read( istream& in ) { return true; }
+    virtual bool write( ostream& out ) const { return true; }
 };
 
 // 误差模型 模板参数：观测值维度，类型，连接顶点类型
@@ -44,8 +44,8 @@ public:
         const Eigen::Vector3d abc = v->estimate();
         _error(0,0) = _measurement - std::exp( abc(0,0)*_x*_x + abc(1,0)*_x + abc(2,0) ) ;
     }
-    virtual bool read( istream& in ) {}
-    virtual bool write( ostream& out ) const {}
+    virtual bool read( istream& in ) { return true; }
+    virtual bool write( ostream& out ) const { return true; }
 public:
     double _x;  // x 值， y 值为 _measurement
 };

@@ -40,8 +40,8 @@ int main ( int argc, char** argv )
         return 1;
     }
     //-- 读取图像
-    Mat img_1 = imread ( argv[1], CV_LOAD_IMAGE_COLOR );
-    Mat img_2 = imread ( argv[2], CV_LOAD_IMAGE_COLOR );
+    Mat img_1 = imread ( argv[1], IMREAD_COLOR );
+    Mat img_2 = imread ( argv[2], IMREAD_COLOR );
 
     vector<KeyPoint> keypoints_1, keypoints_2;
     vector<DMatch> matches;
@@ -49,7 +49,7 @@ int main ( int argc, char** argv )
     cout<<"一共找到了"<<matches.size() <<"组匹配点"<<endl;
 
     // 建立3D点
-    Mat d1 = imread ( argv[3], CV_LOAD_IMAGE_UNCHANGED );       // 深度图为16位无符号数，单通道图像
+    Mat d1 = imread ( argv[3], IMREAD_UNCHANGED );       // 深度图为16位无符号数，单通道图像
     Mat K = ( Mat_<double> ( 3,3 ) << 520.9, 0, 325.1, 0, 521.0, 249.7, 0, 0, 1 );
     vector<Point3f> pts_3d;
     vector<Point2f> pts_2d;
@@ -147,9 +147,9 @@ void bundleAdjustment (
 {
     // 初始化g2o
     typedef g2o::BlockSolver< g2o::BlockSolverTraits<6,3> > Block;  // pose 维度为 6, landmark 维度为 3
-    Block::LinearSolverType* linearSolver = new g2o::LinearSolverCSparse<Block::PoseMatrixType>(); // 线性方程求解器
-    Block* solver_ptr = new Block ( linearSolver );     // 矩阵块求解器
-    g2o::OptimizationAlgorithmLevenberg* solver = new g2o::OptimizationAlgorithmLevenberg ( solver_ptr );
+    unique_ptr<Block::LinearSolverType> linearSolver (new g2o::LinearSolverCSparse<Block::PoseMatrixType>()) ; // 线性方程求解器
+    unique_ptr<Block> solver_ptr (new Block ( move(linearSolver) )) ;     // 矩阵块求解器
+    g2o::OptimizationAlgorithmLevenberg* solver = new g2o::OptimizationAlgorithmLevenberg ( move(solver_ptr) );
     g2o::SparseOptimizer optimizer;
     optimizer.setAlgorithm ( solver );
 

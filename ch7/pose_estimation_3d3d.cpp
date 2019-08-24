@@ -83,8 +83,8 @@ public:
         _jacobianOplusXi(2,5) = -1;
     }
 
-    bool read ( istream& in ) {}
-    bool write ( ostream& out ) const {}
+    bool read ( istream& in ) { return true; }
+    bool write ( ostream& out ) const { return true;  }
 protected:
     Eigen::Vector3d _point;
 };
@@ -97,8 +97,8 @@ int main ( int argc, char** argv )
         return 1;
     }
     //-- 读取图像
-    Mat img_1 = imread ( argv[1], CV_LOAD_IMAGE_COLOR );
-    Mat img_2 = imread ( argv[2], CV_LOAD_IMAGE_COLOR );
+    Mat img_1 = imread ( argv[1], IMREAD_COLOR );
+    Mat img_2 = imread ( argv[2], IMREAD_COLOR );
 
     vector<KeyPoint> keypoints_1, keypoints_2;
     vector<DMatch> matches;
@@ -106,8 +106,8 @@ int main ( int argc, char** argv )
     cout<<"一共找到了"<<matches.size() <<"组匹配点"<<endl;
 
     // 建立3D点
-    Mat depth1 = imread ( argv[3], CV_LOAD_IMAGE_UNCHANGED );       // 深度图为16位无符号数，单通道图像
-    Mat depth2 = imread ( argv[4], CV_LOAD_IMAGE_UNCHANGED );       // 深度图为16位无符号数，单通道图像
+    Mat depth1 = imread ( argv[3], IMREAD_UNCHANGED );       // 深度图为16位无符号数，单通道图像
+    Mat depth2 = imread ( argv[4], IMREAD_UNCHANGED );       // 深度图为16位无符号数，单通道图像
     Mat K = ( Mat_<double> ( 3,3 ) << 520.9, 0, 325.1, 0, 521.0, 249.7, 0, 0, 1 );
     vector<Point3f> pts1, pts2;
 
@@ -275,9 +275,9 @@ void bundleAdjustment (
 {
     // 初始化g2o
     typedef g2o::BlockSolver< g2o::BlockSolverTraits<6,3> > Block;  // pose维度为 6, landmark 维度为 3
-    Block::LinearSolverType* linearSolver = new g2o::LinearSolverEigen<Block::PoseMatrixType>(); // 线性方程求解器
-    Block* solver_ptr = new Block( linearSolver );      // 矩阵块求解器
-    g2o::OptimizationAlgorithmGaussNewton* solver = new g2o::OptimizationAlgorithmGaussNewton( solver_ptr );
+    unique_ptr<Block::LinearSolverType> linearSolver (new g2o::LinearSolverEigen<Block::PoseMatrixType>()) ; // 线性方程求解器
+    unique_ptr<Block> solver_ptr (new Block( move(linearSolver) )) ;      // 矩阵块求解器
+    g2o::OptimizationAlgorithmGaussNewton* solver = new g2o::OptimizationAlgorithmGaussNewton( move(solver_ptr) );
     g2o::SparseOptimizer optimizer;
     optimizer.setAlgorithm( solver );
 

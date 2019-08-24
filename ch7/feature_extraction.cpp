@@ -14,8 +14,8 @@ int main ( int argc, char** argv )
         return 1;
     }
     //-- 读取图像
-    Mat img_1 = imread ( argv[1], CV_LOAD_IMAGE_COLOR );
-    Mat img_2 = imread ( argv[2], CV_LOAD_IMAGE_COLOR );
+    Mat img_1 = imread ( argv[1], IMREAD_COLOR );
+    Mat img_2 = imread ( argv[2], IMREAD_COLOR );
 
     //-- 初始化
     std::vector<KeyPoint> keypoints_1, keypoints_2;

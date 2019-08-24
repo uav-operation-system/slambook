@@ -15,8 +15,11 @@ include_directories(
 )
 
 # OpenCV
-find_package( OpenCV REQUIRED )
-include_directories( ${OpenCV_DIRS} )
+find_package( OpenCV 4 REQUIRED )
+include_directories( 
+    ${OpenCV_INCLUDE_DIRS}
+    "/usr/local/include/opencv4"
+)
 
 add_executable( curve_fitting main.cpp )
 # 与G2O和OpenCV链接

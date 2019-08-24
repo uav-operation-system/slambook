@@ -82,7 +82,7 @@ lang = {zh}
     g2o::OptimizationAlgorithmGaussNewton* solver = new g2o::OptimizationAlgorithmGaussNewton( std::move(solver_ptr) );
     //g2o::OptimizationAlgorithmGaussNewton* solver = new g2o::OptimizationAlgorithmGaussNewton( std::move(solver_ptr) );
     g2o::SparseOptimizer optimizer;
-    optimizer.setAlgorithm( solver );    
+    optimizer.setAlgorithm( solver );
 
 1.2 pose_estimation_3d2d.cpp片段
 修改版本：

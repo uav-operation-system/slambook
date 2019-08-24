@@ -84,17 +84,6 @@ lang = {zh}
     g2o::SparseOptimizer optimizer;
     optimizer.setAlgorithm( solver );    
 
-    1
-    2
-    3
-    4
-    5
-    6
-    7
-    8
-    9
-    10
-
 1.2 pose_estimation_3d2d.cpp片段
 修改版本：
 

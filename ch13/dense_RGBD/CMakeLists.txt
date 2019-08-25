@@ -5,7 +5,10 @@ set( CMAKE_CXX_FLAGS "-std=c++11" )
 
 # opencv 
 find_package( OpenCV REQUIRED )
-include_directories( ${OpenCV_INCLUDE_DIRS} )
+include_directories( 
+    ${OpenCV_INCLUDE_DIRS} 
+    "/usr/local/include/opencv4"
+)
 
 # eigen 
 include_directories( "/usr/include/eigen3/" )

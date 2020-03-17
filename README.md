@@ -78,16 +78,16 @@ lang = {zh}
 修改版本：
 
 ```java
-    // 初始化g2o
-    typedef g2o::BlockSolver< g2o::BlockSolverTraits<6,3> > Block;  // pose维度为 6, landmark 维度为 3
-    //Block::LinearSolverType* linearSolver = new g2o::LinearSolverEigen<Block::PoseMatrixType>(); // 线性方程求解器
-    std::unique_ptr<Block::LinearSolverType> linearSolver (new g2o::LinearSolverEigen<Block::PoseMatrixType>());
-    //Block* solver_ptr = new Block( linearSolver );      // 矩阵块求解器
-    std::unique_ptr<Block> solver_ptr (new Block (std::move(linearSolver)));
-    g2o::OptimizationAlgorithmGaussNewton* solver = new g2o::OptimizationAlgorithmGaussNewton( std::move(solver_ptr) );
-    //g2o::OptimizationAlgorithmGaussNewton* solver = new g2o::OptimizationAlgorithmGaussNewton( std::move(solver_ptr) );
-    g2o::SparseOptimizer optimizer;
-    optimizer.setAlgorithm( solver );
+// 初始化g2o
+typedef g2o::BlockSolver< g2o::BlockSolverTraits<6,3> > Block;  // pose维度为 6, landmark 维度为 3
+//Block::LinearSolverType* linearSolver = new g2o::LinearSolverEigen<Block::PoseMatrixType>(); // 线性方程求解器
+std::unique_ptr<Block::LinearSolverType> linearSolver (new g2o::LinearSolverEigen<Block::PoseMatrixType>());
+//Block* solver_ptr = new Block( linearSolver );      // 矩阵块求解器
+std::unique_ptr<Block> solver_ptr (new Block (std::move(linearSolver)));
+g2o::OptimizationAlgorithmGaussNewton* solver = new g2o::OptimizationAlgorithmGaussNewton( std::move(solver_ptr) );
+//g2o::OptimizationAlgorithmGaussNewton* solver = new g2o::OptimizationAlgorithmGaussNewton( std::move(solver_ptr) );
+g2o::SparseOptimizer optimizer;
+optimizer.setAlgorithm( solver );
 ```
 
 1.2 pose_estimation_3d2d.cpp片段
@@ -95,24 +95,24 @@ lang = {zh}
 修改版本：
 
 ```java
-    // 初始化g2o
-    typedef g2o::BlockSolver< g2o::BlockSolverTraits<6,3> > Block;  // pose 维度为 6, landmark 维度为 3
-    std::unique_ptr<Block::LinearSolverType> linearSolver ( new g2o::LinearSolverCSparse<Block::PoseMatrixType>()); // 线性方程求解器
-    std::unique_ptr<Block> solver_ptr ( new Block ( std::move(linearSolver)));     // 矩阵块求解器
-    g2o::OptimizationAlgorithmLevenberg* solver = new g2o::OptimizationAlgorithmLevenberg ( std::move(solver_ptr));
-    g2o::SparseOptimizer optimizer;
-    optimizer.setAlgorithm ( solver );
+// 初始化g2o
+typedef g2o::BlockSolver< g2o::BlockSolverTraits<6,3> > Block;  // pose 维度为 6, landmark 维度为 3
+std::unique_ptr<Block::LinearSolverType> linearSolver ( new g2o::LinearSolverCSparse<Block::PoseMatrixType>()); // 线性方程求解器
+std::unique_ptr<Block> solver_ptr ( new Block ( std::move(linearSolver)));     // 矩阵块求解器
+g2o::OptimizationAlgorithmLevenberg* solver = new g2o::OptimizationAlgorithmLevenberg ( std::move(solver_ptr));
+g2o::SparseOptimizer optimizer;
+optimizer.setAlgorithm ( solver );
 ```
 
 原始版本：
 
 ```java
-　  // typedef g2o::BlockSolver< g2o::BlockSolverTraits<6,3> > Block;  // pose 维度为 6, landmark 维度为 3
-    // Block::LinearSolverType* linearSolver = new g2o::LinearSolverCSparse<Block::PoseMatrixType>(); // 线性方程求解器
-    // Block* solver_ptr = new Block ( linearSolver );     // 矩阵块求解器
-    // g2o::OptimizationAlgorithmLevenberg* solver = new g2o::OptimizationAlgorithmLevenberg ( solver_ptr );
-    // g2o::SparseOptimizer optimizer;
-    // optimizer.setAlgorithm ( solver );
+// typedef g2o::BlockSolver< g2o::BlockSolverTraits<6,3> > Block;  // pose 维度为 6, landmark 维度为 3
+// Block::LinearSolverType* linearSolver = new g2o::LinearSolverCSparse<Block::PoseMatrixType>(); // 线性方程求解器
+// Block* solver_ptr = new Block ( linearSolver );     // 矩阵块求解器
+// g2o::OptimizationAlgorithmLevenberg* solver = new g2o::OptimizationAlgorithmLevenberg ( solver_ptr );
+// g2o::SparseOptimizer optimizer;
+// optimizer.setAlgorithm ( solver );
 ```
 
 2. 第10讲
